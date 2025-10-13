@@ -1,0 +1,218 @@
+    <!-- jsQR.jsの読み込み -->
+    <script src="{{ url_for('static', filename='js/jsQR.js') }}"></script>
+    <script>
+    // 出庫処理
+    function sOut(act, params={}) {
+        proc = $("#process").text()
+        params['process'] = proc
+        params['action'] = act
+        ID = $("#PID").text()
+        ID = ID.replace('ID : ','')
+        params['ID'] = ID
+        switch (act) {
+            case 'in':
+                length = document.getElementById("length").value
+                params['length'] = length
+                break;
+            default:
+                break;
+        }
+        type = "/api/stock_proc"
+        $.post(type, params)
+        .done(function(json_data){
+            act = json_data.action
+<!--       		alert('action:' + act);-->
+            switch (act) {
+              case 'out':
+                alert('出庫処理完了');
+                location.reload();
+                document.getElementById("st2").style.display = "none";
+                document.getElementById("st0").style.display = "block";
+                document.getElementById("Qrcode").style.display = "block";
+                proc='home';
+                break;
+              case 'in':
+                alert('入庫処理完了');
+                location.reload();
+                document.getElementById("st3").style.display = "none";
+                document.getElementById("st0").style.display = "block";
+                document.getElementById("Qrcode").style.display = "block";
+                proc='home';
+                break;
+              default:
+                break;
+            }
+            $("#process").text(proc);
+            console.log({action: 'stock_act', json: json_data})
+        },'json');
+    }
+
+    // Table処理
+    function add_table(t_name, data) {
+        let table = document.getElementById(t_name);
+        let newRow = table.insertRow();
+
+        newCell = newRow.insertCell();
+        newText = document.createTextNode(data.code);
+        newCell.appendChild(newText);
+
+        newCell = newRow.insertCell();
+        newText = document.createTextNode(data.name);
+        newCell.appendChild(newText);
+
+        newCell = newRow.insertCell();
+        newText = document.createTextNode(data.Lot);
+        newCell.appendChild(newText);
+
+        newCell = newRow.insertCell();
+        newText = document.createTextNode(data.width);
+        newCell.appendChild(newText);
+
+        newCell = newRow.insertCell();
+        newText = document.createTextNode(data.Actual_length);
+        newCell.appendChild(newText);
+    }
+    // ビジーwait
+    function sleep(waitMsec) {
+      var startMsec = new Date();
+      // 指定ミリ秒間だけループさせる（CPUは常にビジー状態）
+      while (new Date() - startMsec < waitMsec);
+    }
+
+    // POST処理
+    function sendQR_code(qr_code,params={}) {
+        console.log({action: 'sendQR_code', qr_code: qr_code, params: params})
+        proc = $("#process").text()
+        params['qrcode'] = qr_code
+        params['process'] = proc
+        type = "/api/qrcode"
+        $.post(type, params)
+        .done(function(json_data){
+            proc = json_data.proc
+<!--       		alert('proc:' + proc);-->
+            switch (proc) {
+              case 'home':
+                break;
+              case 'NG_Person':
+                alert('読み込んだコードの個人登録がありません');
+                location.reload();
+                proc = 'home'
+                document.getEd("init").style.display = "block";
+                document.getElementById("st0").style.display = "none";
+                document.getElementById("Qrcode").style.display = "none";
+                break;
+              case 'stock':
+                name = '担当者：' + json_data.name
+                $("#tantou").text(name);
+                document.getElementById("st1").style.display = "block";
+                document.getElementById("Qrcode").style.display = "block";
+                sleep(2500);
+                break;
+              case 'use':
+                status = json_data.status
+                rid = 'ID : ' + json_data.ID
+                $("#PID").text(rid);
+                                switch (status) {
+                    case 'IN':
+                        add_table('targetTable', json_data);
+                        document.getElementById("st2").style.display = "block";
+                        break;
+                    default:
+                        oL=json_data.Actual_length;
+                        add_table('targetTable2', json_data);
+                        document.getElementById("st3").style.display = "block";
+                        $("#o_length").text(oL);
+                        break;
+                }
+                break;
+              case 'NG_Zaiko':
+                alert(proc+'読み込んだコードの在庫登録がありません');
+                proc = 'stock'
+                document.getElementById("st1").style.display = "block";
+                document.getElementById("Qrcode").style.display = "block";
+                break;
+              default:
+                break;
+            }
+            $("#process").text(proc);
+            console.log({action: 'sendQR_code', json: json_data})
+        },'json');
+
+        switch (proc) {
+          case 'home':
+            document.getElementById("st0").style.display = "none";
+            document.getElementById("Qrcode").style.display = "none";
+            break;
+          case 'stock':
+            document.getElementById("st1").style.display = "none";
+            document.getElementById("Qrcode").style.display = "none";
+            break;
+        }
+    }
+
+      // QRコードPOST送信
+      function sendQRcode(qr_code) {
+            sendQR_code(qr_code);
+      }
+
+      // QRコード読取
+      var video,tmp,tmp_ctx,qr,prev,prev_ctx,w,h,m,x1,y1;
+      window.addEventListener("load",function(){
+        video=document.createElement('video');
+        video.setAttribute("autoplay","");
+        video.setAttribute("muted","");
+        video.setAttribute("playsinline","");
+        video.onloadedmetadata = function(e){video.play();};
+        prev=document.getElementById("preview");
+        prev_ctx=prev.getContext("2d");
+        tmp = document.createElement('canvas');
+        tmp_ctx = tmp.getContext("2d");
+
+        qr = document.getElementById("qr");
+        //カメラ使用の許可ダイアログが表示される
+        navigator.mediaDevices.getUserMedia(
+          //マイクはオフ, カメラの設定   できれば背面カメラ    できれば640×480
+          {"audio":false,"video":{"facingMode":"environment","width":{"ideal":640},"height":{"ideal":480}}}
+        ).then( //許可された場合
+          function(stream){
+            video.srcObject = stream;
+            //0.5秒後にスキャンする
+            setTimeout(Scan,500);
+          }
+        ).catch( //許可されなかった場合
+          function(err){qr.innerHTML=qr.innerHTML+err+'\n';}
+        );
+      });
+      function Scan(){
+        //選択された幅高さ
+        w=video.videoWidth;
+        h=video.videoHeight;
+        //画面上の表示サイズ
+        prev.style.width=(w/2)+"px";
+        prev.style.height=(h/2)+"px";
+        //内部のサイズ
+        prev.setAttribute("width",w);
+        prev.setAttribute("height",h);
+        if(w>h){m=h*0.5;}else{m=w*0.5;}
+        x1=(w-m)/2;
+        y1=(h-m)/2;
+        prev_ctx.drawImage(video,0,0,w,h);
+        prev_ctx.beginPath();
+        prev_ctx.strokeStyle="rgb(255,0,0)";
+        prev_ctx.lineWidth=2;
+        prev_ctx.rect(x1,y1,m,m);
+        prev_ctx.stroke();
+        tmp.setAttribute("width",m);
+        tmp.setAttribute("height",m);
+        tmp_ctx.drawImage(prev,x1,y1,m,m,0,0,m,m);
+        let imageData = tmp_ctx.getImageData(0,0,m,m);
+        let scanResult = jsQR(imageData.data,m,m);
+        if(scanResult){
+          //QRコードをスキャンした結果を出力
+<!--          qr.value=qr.value+scanResult.data+'\n';-->
+<!--          qr.scrollTop = qr.scrollHeight;-->
+          sendQRcode(scanResult.data);
+        }
+        setTimeout(Scan,200);
+      }
+    </script>

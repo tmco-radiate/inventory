@@ -1,0 +1,28 @@
+    <script>
+    // Table処理
+    function tabula(tabledata) {
+        var table = new Tabulator("#example-table", {
+            data: tableData,
+            columns: [
+                {title:"品番", field:"code", sortable:true},
+                {title:"製品名", field:"name"},
+                {title:"ロット", field:"Lot"},
+                {title:"幅", field:"width"},
+                {title:"残長さ", field:"Actual_length"},
+          ]
+        });
+        $("#example-table").tabulator({
+          columns:[
+                {title:"品番", field:"code", sortable:true},
+                {title:"製品名", field:"name", sortable:true},
+                {title:"ロット", field:"Lot"},
+                {title:"幅", field:"width"},
+                {title:"残長さ", field:"Actual_length"}
+          ]
+        });
+        $("#example-table").tabulator("setData",data);
+        $(window).resize(function(){
+            $("#example-table").tabulator("redraw");
+        });
+    }
+    </script>

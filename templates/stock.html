@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div id="st0">
+        <h5 class="text-warning">個人認証QRコードを読み込んでください</h5>
+    </div>
+    <div id="st1">
+        <label id="tantou" class="text-info"></label>
+        <h5 class="text-secondary">対象品のQRコードを読み込んでください</h5>
+    </div>
+    <div id="st2">
+        <h5>対象品を出庫しますか？</h5>
+        <table>
+            <tr>
+                <td>
+                    <button type="button" style="width:120px" onclick="fOut()">出庫します</button>
+                </td>
+                <td>
+                    <button type="button" style="width:120px" onclick="fno()">キャンセル</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label id="PID" class="text-info"></label>
+                </td>
+            </tr>
+        </table>
+        <table border="1" id="targetTable">
+            <thead>
+            <tr align="center">
+                <th>品番</th><th>製品名</th><th>ロット</th><th>幅</th><th>在庫長</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+    <div id="st3">
+        <h5>対象品の未使用長さを入力してください</h5>
+        <table border="1" id="targetTable2">
+            <thead>
+            <tr align="center">
+                <th>品番</th><th>製品名</th><th>ロット</th><th>幅</th><th>出庫時長さ</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table></br>
+        <table border="0" style="font-size: 12pt; line-height: 90%; ">
+            <tr>
+                <td>未使用長さ</td>
+                <td><input type="text" id="length" name="length" size="20" maxlength="10"></td>
+                <td colspan="2"><button type="button" style="width:80px" onclick="fok()">送信</button></td>
+            </tr>
+        </table>
+        <label id="o_length" style="color:#EEEEEE"></label>
+    </div>
+    <div id="Qrcode">
+            <p>カメラが作動しない場合、ctrl+R で作動させてください<br/>
+            ピントを合わせて、QRコードをカメラ映像の赤枠内にあわせると読み取ります</p>
+            <div><canvas id="preview"></canvas></div>
+    </div>
+    <label id="process" style="color:#EEEEEE">{{ name }}</label>
+    <script>
+        // 初期表示でQｒ読取は非表示
+        document.getElementById("st1").style.display = "none";
+        document.getElementById("st2").style.display = "none";
+        document.getElementById("st3").style.display = "none";
+
+        function fOpen() {
+            proc = $("#process").text()
+            switch (proc) {
+              case 'home':
+    <!--            document.getElementById("st0").style.display = "block";-->
+    <!--            document.getElementById("Qrcode").style.display = "block";-->
+    <!--            location.reload();-->
+                break;
+              case 'stock':
+                document.getElementById("st0").style.display = "none";
+                document.getElementById("Qrcode").style.display = "none";
+                break;
+            }
+        }
+        function fno() {
+            document.getElementById("st2").style.display = "none";
+            document.getElementById("st1").style.display = "block";
+            document.getElementById("Qrcode").style.display = "block";
+        }
+        function fOut() {
+            ID = $("#PID").text()
+            ID = ID.replace('ID : ' ,'')
+            sOut('out');
+        }
+        function fok() {
+            proc=$("#process").text()
+            length = document.getElementById("length").value
+            o_length = $("#o_length").text()
+            if (length > o_length) {
+                alert('出庫前より長い数値です。確認してください');
+            }else{
+                sOut('in');
+            }
+        }
+    </script>
+{% endblock %}

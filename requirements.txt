@@ -1,0 +1,9 @@
+flask
+gunicorn
+# SQLite を使っているなら
+sqlite3
+
+# その他で必要なもの（内容次第）
+requests
+pandas
+numpy

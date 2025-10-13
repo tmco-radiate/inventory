@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+    <p>在庫一覧</p>
+    <table border="1">
+        <tr align="center">
+            <th>ID</th><th>品番</th><th>製品名</th><th>ロット</th><th>幅</th>
+            <th>入荷長</th><th>在庫長</th><th>入荷日</th><th>更新日</th><th>状態</th>
+        </tr>
+        {% for d in data %}
+        <tr align="center">
+            <td>{{ d.ID }}</td><td>{{ d.code }}</td><td>{{ d.name }}</td><td>{{ d.Lot }}</td>
+            <td>{{ d.width }}</td><td>{{ d.Initial_length }}</td><td>{{ d.Actual_length }}</td>
+            <td>{{ d.receipt_date }}</td><td>{{ d.updated }}</td><td>{{ d.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <ul>
+  </ul>
+{% endblock %}

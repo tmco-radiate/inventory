@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block content %}
+        <p>次の手順で、在庫の出入庫管理を行うことができます。</p>
+        １．ＱＲコードで個人認証を行う。</br>
+        ２．在庫品のＱＲコードを読取り、出庫／入庫の手続きを行う。</br>
+        　　出庫の場合：在庫品を出庫状態として登録します。</br>
+        　　入庫の場合：使用数量を記入し、入庫状態として登録します。</br></br>
+<label id="process" style="color:#EEEEEE">{{ name }}</label>
+{% endblock %}
